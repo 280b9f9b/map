@@ -38,8 +38,18 @@
       "location": "Near Sweihan",
       "lat": 24.452,
       "lng": 55.335
+    },
+    {
+      "id": "mall-mall",
+      "category": "mall",
+      "name": "Marina Mall Abu Dhabi",
+      "label": "mall",
+      "location": "Abu Dhabi City",
+      "lat": 24.4729254,
+      "lng": 54.3313495
     }
   ]
 }
+
 
 
