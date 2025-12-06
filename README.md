@@ -178,5 +178,5 @@ Mobile bottom-sheet UI
 
 📜 License
 
-This category system is part of the Blue Sky Property map interface.
+This category system is part of the B map interface.
 You may reuse, modify, and extend it within your projects.
