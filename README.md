@@ -1,58 +1,33 @@
-# map
+🧪 Fallback Behavior
 
-const CATEGORY_ICONS
-  attraction: "⭐",
-  museum: "🏛️",
-  restaurant: "🍽️",
-  hotel: "🏨",
-  beach: "🏖️",
-  park: "🌳",
-  mall: "🛍️",
-  shopping: "🛒",
-  cafe: "☕",
-  mosque: "🕌",
-  church: "⛪",
-  gas: "⛽",
-  airport: "✈️",
-  bus: "🚌",
-  train: "🚆",
-  school: "🏫",
-  university: "🎓",
-  hospital: "🏥",
-  pharmacy: "💊",
-  bank: "🏦",
-  office: "🏢",
-  stadium: "🏟️",
-  playground: "🛝",
-  supermarket: "🛒",
-  parking: "🅿️",
-  police: "🚓"
+If your JSON contains a category not defined in the system:
+
+"category": "xyz"
 
 
-const CATEGORY_LABELS
-  attraction: "Attractions",
-  museum: "Museums",
-  restaurant: "Restaurants",
-  hotel: "Hotels",
-  beach: "Beaches",
-  park: "Parks",
-  mall: "Malls",
-  shopping: "Shopping",
-  cafe: "Cafés",
-  mosque: "Mosques",
-  church: "Churches",
-  gas: "Fuel Stations",
-  airport: "Airports",
-  bus: "Bus Stations",
-  train: "Train Stations",
-  school: "Schools",
-  university: "Universities",
-  hospital: "Hospitals",
-  pharmacy: "Pharmacies",
-  bank: "Banks",
-  office: "Offices",
-  stadium: "Stadiums",
-  playground: "Playgrounds",
-  supermarket: "Supermarkets",
-  parking: "Parking Areas",
-  police: "Police Stations"
+Then:
+
+Icon → 📍
+
+Label → “Other Places”
+
+Sidebar section still displays
+
+Map UI remains stable and clean
+
+📂 Used In
+
+map.html
+
+Sidebar category renderer
+
+Popup builder
+
+Mobile bottom sheet
+
+Dynamic map marker styling
+
+📜 License
+
+This category system is part of the Blue Sky Property Map Interface.
+You may reuse, modify, and extend it within your projects.
