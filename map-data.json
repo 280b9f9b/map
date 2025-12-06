@@ -38,16 +38,8 @@
       "location": "Near Sweihan",
       "lat": 24.452,
       "lng": 55.335
-    },
-    {
-      "id": "sweihan-holiday-farm",
-      "category": "attraction",
-      "name": "Sweihan Holiday Farm",
-      "label": "Farm • Holiday Home",
-      "location": "Sweihan, Al Ain",
-      "lat": 24.448,
-      "lng": 55.340
     }
   ]
 }
+
 
