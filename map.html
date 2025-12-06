@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blue Sky Property — Map Overlay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Helvetica Neue", Arial, sans-serif;
+      background: #f5f5f7;
+    }
+
+    /* Fullscreen Map */
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: absolute;
+      top: 160px;
+      left: 16px;
+      width: 280px;
+      max-width: 80vw;
+      max-height: 80vh;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .sidebar-header h1 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: #6e6e73;
+    }
+
+    .section {
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-title .arrow {
+      font-size: 12px;
+      transition: transform 0.25s ease;
+    }
+
+    .section.accordion-open .arrow {
+      transform: rotate(90deg);
+    }
+
+    .place-list { list-style: none; }
+
+    .place-item {
+      border-radius: 10px;
+      border: 1px solid #f0f0f0;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      background: #ffffff;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .place-item:hover {
+      background: #fbfbfd;
+      border-color: rgba(0,0,0,0.12);
+    }
+
+    .place-item.active {
+      border-color: #0071e3;
+      background: #f0f6ff;
+      box-shadow: 0 0 0 1px rgba(0,113,227,0.4);
+    }
+
+    .place-name { font-weight: 600; font-size: 12px; }
+    .place-label, .place-location { color: #6e6e73; font-size: 11px; }
+
+    /* Popup styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+    }
+
+    .leaflet-popup-content {
+      text-align: center; /* CENTER EVERYTHING */
+      padding: 8px;
+    }
+
+    /* Centered Directions Button */
+    .gm-link {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      display: block;
+      width: fit-content;
+      margin: 10px auto 0;  /* <--- center */
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: #0071e3;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .gm-link:hover { background: #0a84ff; }
+    .gm-link:active { background: #0060cc; }
+
+    /* Mobile bottom sheet */
+    @media (max-width: 768px) {
+      .sidebar {
+        top: auto;
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        max-width: 100%;
+        max-height: 45vh;
+        border-radius: 16px 16px 0 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>Nearby Places</h1>
+    <p>Tap a category, then choose a place.</p>
+  </div>
+  <div id="categoryContainer"></div>
+</aside>
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ===============================
+   CATEGORY SYSTEM
+   =============================== */
+
+const CATEGORY_ICONS = {
+  attraction: "⭐",
+  museum: "🏛️",
+  restaurant: "🍽️",
+  hotel: "🏨",
+  beach: "🏖️",
+  park: "🌳",
+  mall: "🛍️",
+  shopping: "🛒",
+  cafe: "☕",
+  mosque: "🕌",
+  church: "⛪",
+  gas: "⛽",
+  airport: "✈️",
+  bus: "🚌",
+  train: "🚆",
+  school: "🏫",
+  university: "🎓",
+  hospital: "🏥",
+  pharmacy: "💊",
+  bank: "🏦",
+  office: "🏢",
+  stadium: "🏟️",
+  playground: "🛝",
+  supermarket: "🛒",
+  parking: "🅿️",
+  police: "🚓"
+};
+
+const CATEGORY_LABELS = {
+  attraction: "Attractions",
+  museum: "Museums",
+  restaurant: "Restaurants",
+  hotel: "Hotels",
+  beach: "Beaches",
+  park: "Parks",
+  mall: "Malls",
+  shopping: "Shopping",
+  cafe: "Cafés",
+  mosque: "Mosques",
+  church: "Churches",
+  gas: "Fuel Stations",
+  airport: "Airports",
+  bus: "Bus Stations",
+  train: "Train Stations",
+  school: "Schools",
+  university: "Universities",
+  hospital: "Hospitals",
+  pharmacy: "Pharmacies",
+  bank: "Banks",
+  office: "Offices",
+  stadium: "Stadiums",
+  playground: "Playgrounds",
+  supermarket: "Supermarkets",
+  parking: "Parking Areas",
+  police: "Police Stations"
+};
+
+const UNKNOWN_ICON = "📍";
+const UNKNOWN_LABEL = "Other Places";
+
+function getCategoryIcon(cat) {
+  if (!cat) return UNKNOWN_ICON;
+  return CATEGORY_ICONS[cat] || UNKNOWN_ICON;
+}
+
+function getCategoryLabel(cat) {
+  if (!cat) return UNKNOWN_LABEL;
+  if (CATEGORY_LABELS[cat]) return CATEGORY_LABELS[cat];
+
+  // Unknown → readable text
+  return cat
+    .replace(/[_\-]+/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/* ===============================
+   MAP INITIALIZATION
+   =============================== */
+
+const map = L.map("map").setView([24.6, 54.6], 9);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19
+}).addTo(map);
+
+let places = [];
+const markersById = new Map();
+let activePlaceId = null;
+
+function addMarker(p) {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+
+  const popupHTML = `
+    <strong>${p.name}</strong><br>
+    ${p.label}<br>
+    <small>${p.location}</small><br><br>
+    <a class="gm-link" href="${url}" target="_blank">Directions</a>
+  `;
+
+  const marker = L.marker([p.lat, p.lng]).addTo(map);
+  marker.bindPopup(popupHTML);
+
+  marker.on("click", () => {
+    activePlaceId = p.id;
+    updateActiveListItem();
+  });
+
+  markersById.set(p.id, marker);
+}
+
+function updateActiveListItem() {
+  document.querySelectorAll(".place-item").forEach(li => {
+    li.classList.toggle("active", li.dataset.id === activePlaceId);
+  });
+}
+
+function focusOnPlace(id) {
+  const p = places.find(x => x.id === id);
+  if (!p) return;
+
+  activePlaceId = id;
+  updateActiveListItem();
+
+  const m = markersById.get(id);
+  map.setView([p.lat, p.lng], 13);
+  m.openPopup();
+}
+
+/* ===============================
+   SIDEBAR CATEGORY RENDERING
+   =============================== */
+
+function renderCategories(places) {
+  const container = document.getElementById("categoryContainer");
+  container.innerHTML = "";
+
+  const categories = [...new Set(places.map(p => p.category || "unknown"))];
+
+  categories.forEach(cat => {
+    const label = getCategoryLabel(cat);
+    const icon  = getCategoryIcon(cat);
+    const listId = `list-${cat}`;
+
+    const section = document.createElement("section");
+    section.className = "section";
+
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.dataset.target = listId;
+    title.innerHTML = `
+      <span class="icon">${icon}</span>
+      <span>${label}</span>
+      <span class="arrow">▶</span>
+    `;
+
+    const list = document.createElement("ul");
+    list.className = "place-list";
+    list.id = listId;
+    list.style.display = "none";
+
+    places
+      .filter(p => (p.category || "unknown") === cat)
+      .forEach(p => {
+        const li = document.createElement("li");
+        li.className = "place-item";
+        li.dataset.id = p.id;
+        li.innerHTML = `
+          <div class="place-name">${p.name}</div>
+          <div class="place-label">${p.label}</div>
+          <div class="place-location">📍 ${p.location}</div>
+        `;
+        li.onclick = () => focusOnPlace(p.id);
+        list.appendChild(li);
+      });
+
+    title.onclick = () => {
+      const open = section.classList.contains("accordion-open");
+      section.classList.toggle("accordion-open", !open);
+      list.style.display = open ? "none" : "block";
+    };
+
+    section.appendChild(title);
+    section.appendChild(list);
+    container.appendChild(section);
+  });
+}
+
+/* ===============================
+   LOAD JSON DATA
+   =============================== */
+
+fetch("map-data.json")
+  .then(res => res.json())
+  .then(data => {
+    places = data.places || [];
+    places.forEach(addMarker);
+    renderCategories(places);
+  })
+  .catch(err => console.error("JSON load error:", err));
+
+</script>
+
+</body>
+</html>
