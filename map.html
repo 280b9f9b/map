@@ -368,7 +368,7 @@ function renderCategories(places) {
    LOAD JSON DATA
    =============================== */
 
-fetch("map-data.json")
+fetch("https://raw.githubusercontent.com/280b9f9b/map/refs/heads/main/map-data.json")
   .then(res => res.json())
   .then(data => {
     places = data.places || [];
@@ -381,4 +381,5 @@ fetch("map-data.json")
 
 </body>
 </html>
+
 
